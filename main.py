@@ -17,7 +17,8 @@ def get_user(request: Request):
         "name": claims.get("name"),
         "email": claims.get("preferred_username"),
         "oid": claims.get("oid"),
-        "tenant": claims.get("tid")
+        "tenant": claims.get("tid"),
+        "data":data
     }
 
 @app.get("/")
