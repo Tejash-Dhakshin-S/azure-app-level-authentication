@@ -1,30 +1,29 @@
-from fastapi import FastAPI, Request, HTTPException
-import base64, json
+from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
+app = FastAPI(title="Doc Receiver API", version="1.0.0")
 
-def get_user(request: Request):
-    principal = request.headers.get("x-ms-client-principal")
-    if not principal:
-        raise HTTPException(status_code=401)
+# Optional: helps during local testing
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-    decoded = base64.b64decode(principal)
-    data = json.loads(decoded)
+@app.get("/health")
+def health():
+    return {"status": "ok"}
 
-    claims = {c["typ"]: c["val"] for c in data.get("claims", [])}
-
+@app.post("/receive-document")
+async def receive_document(file: UploadFile = File(...)):
+    data = await file.read()
+    size = len(data)
+    # Your “simple function” placeholder (you will replace later)
     return {
-        "name": claims.get("name"),
-        "email": claims.get("preferred_username"),
-        "oid": claims.get("oid"),
-        "tenant": claims.get("tid"),
-        "data":data
-    }
-
-@app.get("/")
-async def hello(request: Request):
-    user = get_user(request)
-    return {
-        "message": "Hello world",
-        "user": user
+        "message": "File received successfully",
+        "filename": file.filename,
+        "content_type": file.content_type,
+        "size_bytes": size,
     }
